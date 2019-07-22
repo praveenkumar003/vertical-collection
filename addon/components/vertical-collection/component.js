@@ -197,6 +197,35 @@ const VerticalCollection = Component.extend({
     }
   },
 
+  /* Public API Methods 
+     @index => number
+     This will return offset height of the indexed item.
+  */
+  offsetForIndex(index) {
+    const { _radar } = this;
+    let scrollTop = _radar.getOffsetForIndex(index);
+    _radar._scrollTop = scrollTop;
+    _radar.update();
+    return new Promise(function(resolve, reject) {
+      setTimeout(function() {
+        resolve(_radar.getOffsetForIndex(index));
+      });
+    });
+  },
+
+   /* Public API Methods 
+     @index => number
+     This will return true or false based on the indexed item in the scrollcontainer viewport
+  */
+  checkIfIndexIsInViewport(index) {
+    const { _radar } = this;
+    if (index >= _radar._firstItemIndex && index <= _radar._lastItemIndex) {
+      return true;
+    } else {
+      return false;
+    }
+  },
+
   // –––––––––––––– Setup/Teardown
   didInsertElement() {
     this.schedule('sync', () => {
@@ -207,6 +236,10 @@ const VerticalCollection = Component.extend({
   willDestroy() {
     this.token.cancel();
     this._radar.destroy();
+    let registerAPI = this.get('registerAPI');
+    if (registerAPI) {
+      registerAPI(null);
+    }
     clearTimeout(this._nextSendActions);
   },
 
@@ -276,6 +309,35 @@ const VerticalCollection = Component.extend({
           this._scheduleSendAction(action, index);
         }
       };
+    }
+
+    /* Public methods to Expose to parent 
+      
+       Usage:
+       {{vertical-collection registerAPI=(action "registerAPI")}}
+       export default Component.extend({
+        actions: {
+          registerAPI(api) {
+              this.set('collectionAPI', api);
+          }
+        } 
+      });
+        
+      Need to pass this property in the vertical-collection template
+      Listen in the component actions and do your custom logic
+       This API will have two methods.
+        1. checkIfIndexIsInViewport
+        2. offsetForIndex
+    */
+
+    let registerAPI = get(this, 'registerAPI');
+    if (registerAPI) {
+      /* List of methods to be exposed to public should be added here */
+      let publicAPI = {
+        offsetForIndex: this.offsetForIndex.bind(this),
+        checkIfIndexIsInViewport: this.checkIfIndexIsInViewport.bind(this)
+      };
+      registerAPI(publicAPI);
     }
   }
 });
