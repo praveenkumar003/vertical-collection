@@ -207,7 +207,7 @@ const VerticalCollection = Component.extend({
     _radar._scrollTop = scrollTop;
     _radar.update();
     return new Promise(function(resolve, reject) {
-      setTimeout(function() {
+      run.later(() => {
         resolve(_radar.getOffsetForIndex(index));
       });
     });
