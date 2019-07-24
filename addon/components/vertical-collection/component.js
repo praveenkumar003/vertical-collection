@@ -203,11 +203,18 @@ const VerticalCollection = Component.extend({
   */
   offsetForIndex(index) {
     const { _radar } = this;
+    /* Getting the initial height if component not rendered */
     let scrollTop = _radar.getOffsetForIndex(index);
     _radar._scrollTop = scrollTop;
-    _radar.update();
-    return new Promise(function(resolve, reject) {
-      run.later(() => {
+    /* update the indexes and components*/
+    _radar._updateConstants();
+    _radar._updateIndexes();
+    _radar._updateVirtualComponents();
+    /* Async Job to wait for the component height to be measured 
+       The calculated offset height will be returned in the promise
+    */
+    return new Promise ((resolve, reject) => {
+      _radar.schedule('measure', function(){
         resolve(_radar.getOffsetForIndex(index));
       });
     });
