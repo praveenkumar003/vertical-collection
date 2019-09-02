@@ -207,6 +207,7 @@ const VerticalCollection = Component.extend({
     let scrollTop = _radar.getOffsetForIndex(index);
     _radar._scrollTop = scrollTop;
     /* update the indexes and components*/
+    _radar._didReset=true;
     _radar._updateConstants();
     _radar._updateIndexes();
     _radar._updateVirtualComponents();
@@ -216,6 +217,7 @@ const VerticalCollection = Component.extend({
     return new Promise ((resolve, reject) => {
       _radar.schedule('measure', function(){
         resolve(_radar.getOffsetForIndex(index));
+        _radar.scheduleUpdate();
       });
     });
   },
@@ -270,7 +272,10 @@ const VerticalCollection = Component.extend({
     const idForFirstItem = this.get('idForFirstItem');
     const key = this.get('key');
 
-    const startingIndex = calculateStartingIndex(items, idForFirstItem, key, renderFromLast);
+    // If scrolltoIndex is defined, it will render the 'scrollToIndex' item in the first position
+    // It will be useful, if we want to scroll to a particular item on component init itself.
+    const scrollToIndex = this.get('scrollToIndex');
+    const startingIndex = scrollToIndex ? getScrollToIndex(items, scrollToIndex) : calculateStartingIndex(items, idForFirstItem, key, renderFromLast);
 
     this._radar = new RadarClass(
       this.token,
@@ -357,6 +362,15 @@ if (!SUPPORTS_INVERSE_BLOCK) {
   VerticalCollection.reopen({
     shouldYieldToInverse: false
   });
+}
+
+function getScrollToIndex(items, index) {
+  const totalItems = get(items, 'length');
+  let startingIndex = 0;
+  if (index < totalItems) {
+    startingIndex = index;
+  }
+  return startingIndex;
 }
 
 function calculateStartingIndex(items, idForFirstItem, key, renderFromLast) {
