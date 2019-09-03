@@ -365,12 +365,7 @@ if (!SUPPORTS_INVERSE_BLOCK) {
 }
 
 function getScrollToIndex(items, index) {
-  const totalItems = get(items, 'length');
-  let startingIndex = 0;
-  if (index < totalItems) {
-    startingIndex = index;
-  }
-  return startingIndex;
+  return (index < get(items, 'length')) ? index : 0;
 }
 
 function calculateStartingIndex(items, idForFirstItem, key, renderFromLast) {
