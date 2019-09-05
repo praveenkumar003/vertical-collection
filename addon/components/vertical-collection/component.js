@@ -207,7 +207,6 @@ const VerticalCollection = Component.extend({
     let scrollTop = _radar.getOffsetForIndex(index);
     _radar._scrollTop = scrollTop;
     /* update the indexes and components*/
-    _radar._didReset=true;
     _radar._updateConstants();
     _radar._updateIndexes();
     _radar._updateVirtualComponents();
@@ -217,7 +216,6 @@ const VerticalCollection = Component.extend({
     return new Promise ((resolve, reject) => {
       _radar.schedule('measure', function(){
         resolve(_radar.getOffsetForIndex(index));
-        _radar.scheduleUpdate();
       });
     });
   },
