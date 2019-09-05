@@ -270,7 +270,10 @@ const VerticalCollection = Component.extend({
     const idForFirstItem = this.get('idForFirstItem');
     const key = this.get('key');
 
-    const startingIndex = calculateStartingIndex(items, idForFirstItem, key, renderFromLast);
+    // If scrolltoIndex is defined, it will render the 'scrollToIndex' item in the first position
+    // It will be useful, if we want to scroll to a particular item on component init itself.
+    const scrollToIndex = this.get('scrollToIndex');
+    const startingIndex = scrollToIndex ? getScrollToIndex(items, scrollToIndex) : calculateStartingIndex(items, idForFirstItem, key, renderFromLast);
 
     this._radar = new RadarClass(
       this.token,
@@ -357,6 +360,10 @@ if (!SUPPORTS_INVERSE_BLOCK) {
   VerticalCollection.reopen({
     shouldYieldToInverse: false
   });
+}
+
+function getScrollToIndex(items, index) {
+  return (index < get(items, 'length')) ? index : 0;
 }
 
 function calculateStartingIndex(items, idForFirstItem, key, renderFromLast) {
