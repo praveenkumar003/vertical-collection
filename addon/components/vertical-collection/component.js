@@ -206,11 +206,14 @@ const VerticalCollection = Component.extend({
     // Getting the offset height from Radar
     let scrollTop = _radar.getOffsetForIndex(index);
     _radar._scrollTop = scrollTop;
-    /* if 'shouldRecycle' is false, we should not measure components as it is not rendered yet */
+    // if 'shouldRecycle' is false, we should not measure components as it is not rendered yet */
     if (!_radar.shouldRecycle) {
       _radar._didReset = true;
     }
+    // To scroll exactly to specified index, we are changing the prevIndex values to specified index
     _radar._prevFirstVisibleIndex = _radar._prevFirstItemIndex = index;
+    // Components will be rendered after schedule 'measure' inside 'update' method.
+    // In our case, we need to focus the element after component is rendered. So passing the promise.
     return new Promise ((resolve, reject) => {
       _radar.update(resolve);
     });
