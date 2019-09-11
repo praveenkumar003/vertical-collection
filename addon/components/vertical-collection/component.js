@@ -201,36 +201,19 @@ const VerticalCollection = Component.extend({
      @index => number
      This will return offset height of the indexed item.
   */
-  offsetForIndex(index) {
+  scrollToItem(index) {
     const { _radar } = this;
-    /* Getting the initial height if component not rendered */
+    // Getting the offset height from Radar
     let scrollTop = _radar.getOffsetForIndex(index);
     _radar._scrollTop = scrollTop;
-    /* update the indexes and components*/
-    _radar._updateConstants();
-    _radar._updateIndexes();
-    _radar._updateVirtualComponents();
-    /* Async Job to wait for the component height to be measured 
-       The calculated offset height will be returned in the promise
-    */
-    return new Promise ((resolve, reject) => {
-      _radar.schedule('measure', function(){
-        resolve(_radar.getOffsetForIndex(index));
-      });
-    });
-  },
-
-   /* Public API Methods 
-     @index => number
-     This will return true or false based on the indexed item in the scrollcontainer viewport
-  */
-  checkIfIndexIsInViewport(index) {
-    const { _radar } = this;
-    if (index >= _radar._firstItemIndex && index <= _radar._lastItemIndex) {
-      return true;
-    } else {
-      return false;
+    /* if 'shouldRecycle' is false, we should not measure components as it is not rendered yet */
+    if (!_radar.shouldRecycle) {
+      _radar._didReset = true;
     }
+    _radar._prevFirstVisibleIndex = _radar._prevFirstItemIndex = index;
+    return new Promise ((resolve, reject) => {
+      _radar.update(resolve);
+    });
   },
 
   // –––––––––––––– Setup/Teardown
@@ -335,17 +318,15 @@ const VerticalCollection = Component.extend({
         
       Need to pass this property in the vertical-collection template
       Listen in the component actions and do your custom logic
-       This API will have two methods.
-        1. checkIfIndexIsInViewport
-        2. offsetForIndex
+       This API will have below methods.
+        1. scrollToItem
     */
 
     let registerAPI = get(this, 'registerAPI');
     if (registerAPI) {
       /* List of methods to be exposed to public should be added here */
       let publicAPI = {
-        offsetForIndex: this.offsetForIndex.bind(this),
-        checkIfIndexIsInViewport: this.checkIfIndexIsInViewport.bind(this)
+        scrollToItem: this.scrollToItem.bind(this)
       };
       registerAPI(publicAPI);
     }

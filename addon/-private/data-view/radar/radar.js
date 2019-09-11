@@ -234,7 +234,7 @@ export default class Radar {
     });
   }
 
-  update() {
+  update(promiseResolve) {
     if (this._didUpdateItems === true) {
       this._determineUpdateType();
       this._didUpdateItems = false;
@@ -244,7 +244,12 @@ export default class Radar {
     this._updateIndexes();
     this._updateVirtualComponents();
 
-    this.schedule('measure', this.afterUpdate.bind(this));
+    this.schedule('measure', () => {
+      if (promiseResolve) {
+        promiseResolve();
+      }
+      this.afterUpdate();
+    });
   }
 
   afterUpdate() {
