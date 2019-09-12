@@ -45,7 +45,10 @@ export default class VirtualComponent {
     let top = Infinity;
     let bottom = -Infinity;
 
-    while (upperBound !== lowerBound) {
+    /*  TODO Need to remove the extra check 'upperBound' once the below issue is fixed in the plugin.
+        https://github.com/html-next/vertical-collection/issues/296
+    */
+    while (upperBound !== lowerBound && upperBound) {
       upperBound = upperBound.nextSibling;
 
       if (upperBound instanceof Element) {
@@ -58,13 +61,19 @@ export default class VirtualComponent {
           continue;
         }
 
+        /*  TODO Need to uncomment below lines once the below issue is fixed in the plugin.
+            https://github.com/html-next/vertical-collection/issues/296
         const text = upperBound.textContent;
 
         assert(`All content inside of vertical-collection must be wrapped in an element. Detected a text node with content: ${text}`, text === '' || text.match(/^\s+$/));
+        */
       }
     }
 
+    /*  TODO Need to uncomment below lines once the below issue is fixed in the plugin.
+        https://github.com/html-next/vertical-collection/issues/296
     assert('Items in a vertical collection require atleast one element in them', top !== Infinity && bottom !== -Infinity);
+    */
 
     const height = bottom - top;
 
