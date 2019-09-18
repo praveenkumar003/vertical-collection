@@ -32,14 +32,14 @@ export default class DynamicRadar extends Radar {
     this.skipList = null;
   }
 
-  scheduleUpdate(didUpdateItems) {
+  scheduleUpdate(didUpdateItems, promiseResolve) {
     // Cancel incremental render check, since we'll be remeasuring anyways
     if (this._nextIncrementalRender !== null) {
       this._nextIncrementalRender.cancel();
       this._nextIncrementalRender = null;
     }
 
-    super.scheduleUpdate(didUpdateItems);
+    super.scheduleUpdate(didUpdateItems, promiseResolve);
   }
 
   afterUpdate() {
@@ -79,7 +79,7 @@ export default class DynamicRadar extends Radar {
       visibleTop,
       visibleBottom,
       totalItems,
-      shouldRecycle,
+
       _didReset
     } = this;
 
@@ -95,11 +95,7 @@ export default class DynamicRadar extends Radar {
     // Don't measure if the radar has just been instantiated or reset, as we are rendering with a
     // completely new set of items and won't get an accurate measurement until after they render the
     // first time.
-
-    /*  TODO Need to remove the extra check 'shouldRecycle' once the below issue is fixed in the plugin.
-        https://github.com/html-next/vertical-collection/issues/296
-    */
-    if (_didReset === false && shouldRecycle) {
+    if (_didReset === false) {
       this._measure();
     }
 
@@ -174,7 +170,7 @@ export default class DynamicRadar extends Radar {
     const {
       orderedComponents,
       skipList,
-      estimateHeight,
+
       _occludedContentBefore,
       _transformScale
     } = this;
@@ -190,7 +186,7 @@ export default class DynamicRadar extends Radar {
       const previousItem = orderedComponents[i - 1];
       const itemIndex = currentItem.index;
 
-      let {
+      const {
         top: currentItemTop,
         height: currentItemHeight
       } = getScaledClientRect(currentItem, _transformScale);
@@ -202,18 +198,6 @@ export default class DynamicRadar extends Radar {
       } else {
         margin = currentItemTop - getScaledClientRect(_occludedContentBefore, _transformScale).bottom;
       }
-
-      /*  TODO Need to remove the extra check 'shouldRecycle' once the below issue is fixed in the plugin.
-          https://github.com/html-next/vertical-collection/issues/296
-      */
-      if(margin == Infinity || margin < 0) {
-        margin = 0;
-      }
-
-      if(currentItemHeight == -Infinity) {
-        currentItemHeight = estimateHeight;
-      }
-      // https://github.com/html-next/vertical-collection/issues/296 => Ends here 
 
       const newHeight = roundTo(currentItemHeight + margin);
       const itemDelta = skipList.set(itemIndex, newHeight);

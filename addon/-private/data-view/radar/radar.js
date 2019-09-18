@@ -215,7 +215,7 @@ export default class Radar {
    *
    * @private
    */
-  scheduleUpdate(didUpdateItems) {
+  scheduleUpdate(didUpdateItems, promiseResolve) {
     if (didUpdateItems === true) {
       // Set the update items flag first, in case scheduleUpdate has already been called
       // but the RAF hasn't yet run
@@ -226,11 +226,13 @@ export default class Radar {
       return;
     }
 
+    // this value should depends on the 'shouldRecycle' so that component can be rendered again in the DOM correctly.
+    this._didReset = !this.shouldRecycle;
+
     this._nextUpdate = this.schedule('sync', () => {
       this._nextUpdate = null;
       this._scrollTop = this._scrollContainer.scrollTop;
-
-      this.update();
+      this.update(promiseResolve);
     });
   }
 
