@@ -1,4 +1,3 @@
-/* global Array, Math */
 import { empty, readOnly } from '@ember/object/computed';
 
 import Component from '@ember/component';
@@ -7,8 +6,6 @@ import { run } from '@ember/runloop';
 import layout from './template';
 
 import { scheduler, Token } from 'ember-raf-scheduler';
-
-import { SUPPORTS_INVERSE_BLOCK, SUPPORTS_CLOSURE_ACTIONS } from 'ember-compatibility-helpers';
 
 import {
   keyForItem,
@@ -190,14 +187,10 @@ const VerticalCollection = Component.extend({
             const key = keyForItem(item, keyPath, index);
 
             // this.sendAction will be deprecated in ember 4.0
-            if (SUPPORTS_CLOSURE_ACTIONS) {
-              const _action = get(this, action);
-              if (typeof _action == 'function') {
-                _action(item, index, key);
-              } else if (typeof _action === 'string') {
-                this.sendAction(action, item, index, key);
-              }
-            } else {
+            const _action = get(this, action);
+            if (typeof _action == 'function') {
+              _action(item, index, key);
+            } else if (typeof _action === 'string') {
               this.sendAction(action, item, index, key);
             }
           });
@@ -293,12 +286,6 @@ const VerticalCollection = Component.extend({
 VerticalCollection.reopenClass({
   positionalParams: ['items']
 });
-
-if (!SUPPORTS_INVERSE_BLOCK) {
-  VerticalCollection.reopen({
-    shouldYieldToInverse: false
-  });
-}
 
 function calculateStartingIndex(items, idForFirstItem, key, renderFromLast) {
   const totalItems = get(items, 'length');
