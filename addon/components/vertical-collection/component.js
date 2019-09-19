@@ -1,4 +1,3 @@
-/* global Array, Math */
 import { empty, readOnly } from '@ember/object/computed';
 
 import Component from '@ember/component';
@@ -7,8 +6,6 @@ import { run } from '@ember/runloop';
 import layout from './template';
 
 import { scheduler, Token } from 'ember-raf-scheduler';
-
-import { SUPPORTS_INVERSE_BLOCK } from 'ember-compatibility-helpers';
 
 import {
   keyForItem,
@@ -189,47 +186,17 @@ const VerticalCollection = Component.extend({
             const item = objectAt(items, index);
             const key = keyForItem(item, keyPath, index);
 
-            this.sendAction(action, item, index, key);
+            // this.sendAction will be deprecated in ember 4.0
+            const _action = get(this, action);
+            if (typeof _action == 'function') {
+              _action(item, index, key);
+            } else if (typeof _action === 'string') {
+              this.sendAction(action, item, index, key);
+            }
           });
           this._scheduledActions.length = 0;
         });
       });
-    }
-  },
-
-  /* Public API Methods 
-     @index => number
-     This will return offset height of the indexed item.
-  */
-  offsetForIndex(index) {
-    const { _radar } = this;
-    /* Getting the initial height if component not rendered */
-    let scrollTop = _radar.getOffsetForIndex(index);
-    _radar._scrollTop = scrollTop;
-    /* update the indexes and components*/
-    _radar._updateConstants();
-    _radar._updateIndexes();
-    _radar._updateVirtualComponents();
-    /* Async Job to wait for the component height to be measured 
-       The calculated offset height will be returned in the promise
-    */
-    return new Promise ((resolve, reject) => {
-      _radar.schedule('measure', function(){
-        resolve(_radar.getOffsetForIndex(index));
-      });
-    });
-  },
-
-   /* Public API Methods 
-     @index => number
-     This will return true or false based on the indexed item in the scrollcontainer viewport
-  */
-  checkIfIndexIsInViewport(index) {
-    const { _radar } = this;
-    if (index >= _radar._firstItemIndex && index <= _radar._lastItemIndex) {
-      return true;
-    } else {
-      return false;
     }
   },
 
@@ -243,10 +210,6 @@ const VerticalCollection = Component.extend({
   willDestroy() {
     this.token.cancel();
     this._radar.destroy();
-    let registerAPI = this.get('registerAPI');
-    if (registerAPI) {
-      registerAPI(null);
-    }
     clearTimeout(this._nextSendActions);
   },
 
@@ -270,10 +233,7 @@ const VerticalCollection = Component.extend({
     const idForFirstItem = this.get('idForFirstItem');
     const key = this.get('key');
 
-    // If scrolltoIndex is defined, it will render the 'scrollToIndex' item in the first position
-    // It will be useful, if we want to scroll to a particular item on component init itself.
-    const scrollToIndex = this.get('scrollToIndex');
-    const startingIndex = scrollToIndex ? getScrollToIndex(items, scrollToIndex) : calculateStartingIndex(items, idForFirstItem, key, renderFromLast);
+    const startingIndex = calculateStartingIndex(items, idForFirstItem, key, renderFromLast);
 
     this._radar = new RadarClass(
       this.token,
@@ -320,51 +280,12 @@ const VerticalCollection = Component.extend({
         }
       };
     }
-
-    /* Public methods to Expose to parent 
-      
-       Usage:
-       {{vertical-collection registerAPI=(action "registerAPI")}}
-       export default Component.extend({
-        actions: {
-          registerAPI(api) {
-              this.set('collectionAPI', api);
-          }
-        } 
-      });
-        
-      Need to pass this property in the vertical-collection template
-      Listen in the component actions and do your custom logic
-       This API will have two methods.
-        1. checkIfIndexIsInViewport
-        2. offsetForIndex
-    */
-
-    let registerAPI = get(this, 'registerAPI');
-    if (registerAPI) {
-      /* List of methods to be exposed to public should be added here */
-      let publicAPI = {
-        offsetForIndex: this.offsetForIndex.bind(this),
-        checkIfIndexIsInViewport: this.checkIfIndexIsInViewport.bind(this)
-      };
-      registerAPI(publicAPI);
-    }
   }
 });
 
 VerticalCollection.reopenClass({
   positionalParams: ['items']
 });
-
-if (!SUPPORTS_INVERSE_BLOCK) {
-  VerticalCollection.reopen({
-    shouldYieldToInverse: false
-  });
-}
-
-function getScrollToIndex(items, index) {
-  return (index < get(items, 'length')) ? index : 0;
-}
 
 function calculateStartingIndex(items, idForFirstItem, key, renderFromLast) {
   const totalItems = get(items, 'length');
