@@ -1,4 +1,3 @@
-/* global Array, Math */
 import { empty, readOnly } from '@ember/object/computed';
 
 import Component from '@ember/component';
@@ -7,8 +6,6 @@ import { run } from '@ember/runloop';
 import layout from './template';
 
 import { scheduler, Token } from 'ember-raf-scheduler';
-
-import { SUPPORTS_INVERSE_BLOCK } from 'ember-compatibility-helpers';
 
 import {
   keyForItem,
@@ -189,7 +186,13 @@ const VerticalCollection = Component.extend({
             const item = objectAt(items, index);
             const key = keyForItem(item, keyPath, index);
 
-            this.sendAction(action, item, index, key);
+            // this.sendAction will be deprecated in ember 4.0
+            const _action = get(this, action);
+            if (typeof _action == 'function') {
+              _action(item, index, key);
+            } else if (typeof _action === 'string') {
+              this.sendAction(action, item, index, key);
+            }
           });
           this._scheduledActions.length = 0;
         });
@@ -335,12 +338,6 @@ const VerticalCollection = Component.extend({
 VerticalCollection.reopenClass({
   positionalParams: ['items']
 });
-
-if (!SUPPORTS_INVERSE_BLOCK) {
-  VerticalCollection.reopen({
-    shouldYieldToInverse: false
-  });
-}
 
 function getScrollToIndex(items, index) {
   return (index < get(items, 'length')) ? index : 0;
