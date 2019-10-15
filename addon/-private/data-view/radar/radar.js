@@ -560,6 +560,7 @@ export default class Radar {
       virtualComponents,
       _occludedContentAfter,
       _appendComponentPool,
+      shouldRecycle,
       _itemContainer
     } = this;
 
