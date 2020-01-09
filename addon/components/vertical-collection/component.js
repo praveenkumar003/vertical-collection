@@ -218,6 +218,11 @@ const VerticalCollection = Component.extend({
     });
   },
 
+  update() {
+    const { _radar } = this;
+    _radar.scheduleUpdate();
+  },
+
   // –––––––––––––– Setup/Teardown
   didInsertElement() {
     this.schedule('sync', () => {
@@ -328,7 +333,8 @@ const VerticalCollection = Component.extend({
     if (registerAPI) {
       /* List of methods to be exposed to public should be added here */
       let publicAPI = {
-        scrollToItem: this.scrollToItem.bind(this)
+        scrollToItem: this.scrollToItem.bind(this),
+        update: this.update.bind(this)
       };
       registerAPI(publicAPI);
     }
